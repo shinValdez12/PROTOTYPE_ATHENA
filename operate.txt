@@ -1,0 +1,7 @@
+py list - to check if my project install the py 3.11
+py -3.11 -m venv venv - to turn on the py 3.11
+
+py -3.11 -m venv venv
+venv\Scripts\activate
+
+to install the all library at once just type this -- pip install -r requirements.txt --
