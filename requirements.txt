@@ -4,3 +4,5 @@ pyttsx3
 pyautogui
 python-dotenv
 openai
+edge-tts
+dge-tts pygame

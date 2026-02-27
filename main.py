@@ -13,7 +13,7 @@ def start_athena():
         
         if raw_text:
             if raw_text.startswith(config.WAKE_WORD):
-                command = raw_text.replace(config.WAKE_WORD, "").strip()
+                command = raw_text.replace(config.WAKE_WORD, "", 1).strip()
                 
                 if not command:
                     speak("Yes? I am listening.")
@@ -25,16 +25,13 @@ def start_athena():
 
                 if decision['intent'] != "unknown":
                     result = execute_action(decision['intent'], decision['data'])
-                    speak(result)
+                    if result:
+                        speak(result)
                 else:
                     print("Athena is thinking...")
                     ai_response = ask_athena(command)
                     speak(ai_response)
- 
-                result = execute_action(decision['intent'], decision['data'])
-
-                if result:
-                    speak(result)
+                
             else:
                 pass
 
