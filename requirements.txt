@@ -3,3 +3,4 @@ pyaudio
 pyttsx3
 pyautogui
 python-dotenv
+openai
