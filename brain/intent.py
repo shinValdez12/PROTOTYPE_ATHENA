@@ -35,17 +35,47 @@ chat_history = [
     }
 ]
 
+def clean_email_text(text):
+    text = text.replace(" at ", "@")
+    text = text.replace(" dot ", ".")
+    if "@" in text:
+        parts = text.split()
+        for i, part in enumerate(parts):
+            if "@" in part:
+                pass 
+    return text.replace(" ", "") if "@" in text else text
+
 def parse_intent(text):
     text = text.lower().strip()
 
-    if any(word in text for word in ["time", "clock"]):
-            return {"intent": "get_time", "data": None}
-        
-    if any(word in text for word in ["date", "today", "day is it"]):
-            return {"intent": "get_date", "data": None}
+    #PRE-PROCESSING: Fix Spoken Email Artifacts First
+    if " at " in text and ("gmail" in text or "mail" in text):
+        text = text.replace(" at ", "@").replace(" dot ", ".")
+
+    if "change" in text and ("unknown@gmail.com" in text or "unknown" in text) and "to" in text:
+        return {"intent": "update_email_recipient", "data": text}
+
+    if text in ["confirm", "yes", "proceed", "do it"]:
+        return {"intent": "confirm_action", "data": None}
     
+    if text in ["cancel", "no", "stop"]:
+        return {"intent": "cancel_action", "data": None}
+
+    if ("email" in text or "mail" in text) and ("@" in text or "gmail.com" in text or "yahoo.com" in text or "outlook.com" in text or " at " in text):
+        return {"intent": "prepare_email", "data": text}
+
+    if any(word in text for word in ["schedule", "set an event", "calendar", "meeting"]):
+        return {"intent": "prepare_event", "data": text}
+
+    #Immediate Checks (Time, Date, Weather)
+    if any(word in text for word in ["time", "clock"]):
+        return {"intent": "get_time", "data": None}
+    if any(word in text for word in ["date", "today", "day is it"]):
+        return {"intent": "get_date", "data": None}
     if "weather" in text:
         return {"intent": "get_weather", "data": None}
+
+    #Software/Apps Dictionary
     software_apps = {
         "visual studio code": "vscode",
         "vs code": "vscode",
@@ -53,31 +83,8 @@ def parse_intent(text):
         "calculator": "calculator",
         "chrome": "chrome"
     }
-
-    if "open" in text or "launch" in text:
-        for name, app_id in software_apps.items():
-            if name in text:
-                return {"intent": "open_app", "data": app_id}
     
-    if "open" in text or "launch" in text:
-        if "visual studio code" in text or "vs code" in text:
-            return {"intent": "open_app", "data": "vscode"}
-
-    if "play" in text:
-        query = text.replace("play", "").replace("on youtube", "").strip()
-        return {"intent": "open_youtube", "data": None}
-    
-    elif "search for" in text and "youtube" in text:
-        query = text.replace("search for ", "").replace("on youtube", "").strip()
-        return {"intent": "open_youtube", "data": None}
-    
-    if "work mode" in text:
-        return {"intent": "work_mode", "data": None}
-    
-    if "take a note" in text:
-        note = text.replace("take a note", "").strip()
-        return {"intent": "save_note", "data": note}
-    
+    #GSuite Dictionary
     gsuite_apps = {
         "calendar": "calendar",
         "docs": "docs",
@@ -89,17 +96,34 @@ def parse_intent(text):
         "meet": "meet"
     }
 
-    if any(trigger in text for trigger in ["open google", "open my", "go to my"]):
-        for keyword, internal_name in gsuite_apps.items():
-            if keyword in text:
-                return {"intent": "open_gsuite", "data": internal_name}
+    #Action Logic: Catch keywords even without "open"
+    for keyword, internal_name in gsuite_apps.items():
+        if keyword in text:
+            return {"intent": "open_gsuite", "data": internal_name}
+
+    for name, app_id in software_apps.items():
+        if name in text:
+            return {"intent": "open_app", "data": app_id}
+
+    if "work mode" in text:
+        return {"intent": "work_mode", "data": None}
     
-    if "search for" in text:
-        query = text.split("search for")[-1].strip()
+    if "take a note" in text:
+        note = text.replace("take a note", "").strip()
+        return {"intent": "save_note", "data": note}
+
+    if "play" in text or "youtube" in text:
+        query = text.replace("search for", "").replace("play", "").replace("on youtube", "").strip()
+        if query:
+            return {"intent": "play_youtube", "data": query}
+        return {"intent": "open_youtube", "data": None}
+
+    if "search for" in text or text.startswith("search"):
+        query = text.replace("search for", "").replace("search", "", 1).strip()
         return {"intent": "search_google", "data": query}
-    elif text.startswith("search"):
-        query = text.replace("search", "", 1).strip()
-        return {"intent": "search_google", "data": query}
+    
+    if "google" in text and "open" in text:
+        return {"intent": "search_google", "data": ""}
 
     return {"intent": "unknown", "data": None}
 

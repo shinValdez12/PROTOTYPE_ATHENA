@@ -24,7 +24,7 @@ def start_athena():
                 decision = parse_intent(command)
 
                 if decision['intent'] != "unknown":
-                    result = execute_action(decision['intent'], decision['data'])
+                    result = execute_action(decision['intent'], decision['data'], ask_athena)
                     if result:
                         speak(result)
                 else:

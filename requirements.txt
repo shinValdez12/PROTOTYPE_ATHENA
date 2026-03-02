@@ -6,3 +6,7 @@ python-dotenv
 openai
 edge-tts
 dge-tts pygame
+pywhatkit
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
